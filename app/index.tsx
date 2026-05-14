@@ -5,17 +5,20 @@ import DateTimePicker, {
 import * as Haptics from 'expo-haptics';
 import * as Notifications from 'expo-notifications';
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Modal,
   Platform,
   Pressable,
   StyleSheet,
   Text,
+  useColorScheme,
   useWindowDimensions,
   View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   Easing,
   FadeInDown,
@@ -24,6 +27,7 @@ import Animated, {
   LinearTransition,
   useAnimatedStyle,
   useDerivedValue,
+  useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -70,6 +74,21 @@ const REASON_FACTS: Record<string, string> = {
   'Something else':
     'Journaling is flexible enough to meet you where you are, even when your reason changes day to day.',
 };
+
+const PLAN_READY_ITEMS = [
+  {
+    icon: 'shield-checkmark-outline',
+    label: 'Everything you add to North Star is secure & private',
+  },
+  {
+    icon: 'sparkles-outline',
+    label: 'Your reflection prompts are ready to help you go deeper',
+  },
+  {
+    icon: 'flag-outline',
+    label: 'The first activity is prepared and waiting for you',
+  },
+] as const;
 
 const OPTION_ANIMATION = {
   duration: 240,
@@ -352,29 +371,72 @@ function ReminderOption({
 }
 
 export default function OnboardingScreen() {
-  const [step, setStep] = useState<'reasons' | 'age' | 'reminders'>('reasons');
+  const [step, setStep] = useState<'reasons' | 'age' | 'reminders' | 'planReady'>('reasons');
   const [selectedReasons, setSelectedReasons] = useState<string[]>([]);
   const [expandedReason, setExpandedReason] = useState<string | null>(null);
   const [selectedAgeRange, setSelectedAgeRange] = useState<string | null>(null);
   const [reminders, setReminders] = useState<Reminder[]>(DEFAULT_REMINDERS);
   const [activeReminderId, setActiveReminderId] = useState<Reminder['id'] | null>(null);
   const [draftReminderTime, setDraftReminderTime] = useState<Date | null>(null);
+  const [planReadyStage, setPlanReadyStage] = useState(0);
+  const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
+  const planReadyProgress = useSharedValue(0);
   const isCompact = height < 760;
   const isVeryCompact = height < 700;
   const isAgeStep = step === 'age';
   const isReminderStep = step === 'reminders';
+  const isPlanReadyStep = step === 'planReady';
+  const isPlanReadyComplete = planReadyStage >= PLAN_READY_ITEMS.length;
   const activeReminder = reminders.find((reminder) => reminder.id === activeReminderId) ?? null;
   const enabledReminderCount = reminders.filter((reminder) => reminder.enabled).length;
   const continueButtonHeight = isVeryCompact ? 52 : isCompact ? 56 : 62;
-  const footerGap = isReminderStep ? 0 : isCompact ? 12 : 16;
-  const noteHeight = isReminderStep ? 0 : isAgeStep ? (isCompact ? 34 : 44) : isCompact ? 40 : 52;
-  const footerHeight = noteHeight + footerGap + continueButtonHeight;
+  const footerGap = isPlanReadyStep ? (isCompact ? 18 : 22) : isReminderStep ? 0 : isCompact ? 12 : 16;
+  const noteHeight = isReminderStep || isPlanReadyStep ? 0 : isAgeStep ? (isCompact ? 34 : 44) : isCompact ? 40 : 52;
+  const planReadyProgressHeight = isPlanReadyStep ? 10 : 0;
+  const footerHeight = noteHeight + footerGap + planReadyProgressHeight + continueButtonHeight;
   const footerBottomOffset = isCompact
     ? Math.max(insets.bottom + 16, 24)
     : Math.max(insets.bottom + 28, 40);
   const footerReserve = footerHeight + footerBottomOffset + 24;
+  const iosPickerDisplay = colorScheme === 'dark' ? 'default' : 'spinner';
+  const focusedReasons = useMemo(() => {
+    if (!selectedReasons.length) {
+      return 'Your journaling goals.';
+    }
+
+    return `${selectedReasons.join(', ')}.`;
+  }, [selectedReasons]);
+
+  const planReadyBarAnimatedStyle = useAnimatedStyle(() => ({
+    width: `${planReadyProgress.value * 100}%`,
+  }));
+
+  useEffect(() => {
+    if (!isPlanReadyStep) {
+      planReadyProgress.value = 0;
+      setPlanReadyStage(0);
+      return;
+    }
+
+    planReadyProgress.value = 0;
+    setPlanReadyStage(0);
+    planReadyProgress.value = withTiming(1, {
+      duration: 3900,
+      easing: Easing.out(Easing.cubic),
+    });
+
+    const timers = [
+      setTimeout(() => setPlanReadyStage(1), 1050),
+      setTimeout(() => setPlanReadyStage(2), 2400),
+      setTimeout(() => setPlanReadyStage(3), 3900),
+    ];
+
+    return () => {
+      timers.forEach(clearTimeout);
+    };
+  }, [isPlanReadyStep, planReadyProgress]);
 
   const toggleReason = (reason: string) => {
     if (process.env.EXPO_OS === 'ios') {
@@ -411,6 +473,13 @@ export default function OnboardingScreen() {
     Alert.alert(
       'Notifications are off',
       'Turn on notifications in Settings to receive your journal reminders.'
+    );
+  };
+
+  const showReminderNotScheduledAfterTimeChangeAlert = () => {
+    Alert.alert(
+      'Time updated',
+      'Your new reminder time was saved, but notifications could not be scheduled in Expo Go. Use a development build for full notification support.'
     );
   };
 
@@ -530,6 +599,10 @@ export default function OnboardingScreen() {
       await cancelReminderNotification(reminder.notificationId);
       const notificationId = await scheduleReminderNotification(nextReminder);
 
+      if (!notificationId) {
+        showReminderNotScheduledAfterTimeChangeAlert();
+      }
+
       setReminders((current) =>
         current.map((item) =>
           item.id === reminderId
@@ -588,7 +661,7 @@ export default function OnboardingScreen() {
 
   const saveDraftReminderTime = () => {
     if (activeReminderId && draftReminderTime) {
-      commitReminderTime(activeReminderId, draftReminderTime);
+      void commitReminderTime(activeReminderId, draftReminderTime);
     }
 
     closeReminderTimePicker();
@@ -611,7 +684,9 @@ export default function OnboardingScreen() {
   };
 
   const goBack = () => {
-    if (step === 'reminders') {
+    if (step === 'planReady') {
+      setStep('reminders');
+    } else if (step === 'reminders') {
       setStep('age');
     } else if (step === 'age') {
       setStep('reasons');
@@ -625,6 +700,9 @@ export default function OnboardingScreen() {
       setStep('reminders');
     } else if (step === 'reminders') {
       await scheduleEnabledReminders();
+      setStep('planReady');
+    } else if (step === 'planReady' && isPlanReadyComplete) {
+      Alert.alert('Plan ready', 'Your first reflection is ready when you are.');
     }
   };
 
@@ -651,6 +729,8 @@ export default function OnboardingScreen() {
 
           {isReminderStep ? (
             <View style={styles.skipButtonPlaceholder} />
+          ) : isPlanReadyStep ? (
+            <View style={styles.skipButtonPlaceholder} />
           ) : (
             <Pressable
               accessibilityRole="button"
@@ -665,8 +745,15 @@ export default function OnboardingScreen() {
           style={[
             styles.main,
             isReminderStep && styles.reminderMain,
+            isPlanReadyStep && styles.planReadyMain,
             {
-              paddingTop: isReminderStep
+              paddingTop: isPlanReadyStep
+                ? isVeryCompact
+                  ? 0
+                  : isCompact
+                    ? 0
+                    : 8
+                : isReminderStep
                 ? isVeryCompact
                   ? 2
                   : isCompact
@@ -679,7 +766,75 @@ export default function OnboardingScreen() {
                     : 28,
             },
           ]}>
-          {isReminderStep ? (
+          {isPlanReadyStep ? (
+            <>
+              <View
+                style={[
+                  styles.planReadyHeader,
+                  isCompact && styles.planReadyHeaderCompact,
+                  isVeryCompact && styles.planReadyHeaderVeryCompact,
+                ]}>
+                <Text style={[styles.planReadyTitle, isVeryCompact && styles.planReadyTitleCompact]}>
+                  all set up, your{'\n'}plan is ready!
+                </Text>
+                <Text
+                  style={[
+                    styles.planReadySubtitle,
+                    isVeryCompact && styles.planReadySubtitleCompact,
+                  ]}>
+                  Focused on:{' '}
+                  <Text style={styles.planReadySubtitleStrong}>{focusedReasons}</Text>
+                </Text>
+              </View>
+
+              <View
+                style={[
+                  styles.planReadyChecklist,
+                  isCompact && styles.planReadyChecklistCompact,
+                  isVeryCompact && styles.planReadyChecklistVeryCompact,
+                ]}>
+                {PLAN_READY_ITEMS.map((item, index) => {
+                  const isComplete = index < planReadyStage;
+                  const isActive = index === planReadyStage;
+                  const isPending = index > planReadyStage;
+
+                  return (
+                    <View
+                      key={item.label}
+                      style={[
+                        styles.planReadyCard,
+                        isCompact && styles.planReadyCardCompact,
+                        isVeryCompact && styles.planReadyCardVeryCompact,
+                        isPending && styles.planReadyCardPending,
+                      ]}>
+                      <View style={styles.planReadyCardIcon}>
+                        <Ionicons
+                          color={isPending ? '#BDBDBD' : '#111111'}
+                          name={item.icon}
+                          size={isVeryCompact ? 27 : 31}
+                        />
+                      </View>
+                      <Text
+                        style={[
+                          styles.planReadyCardText,
+                          isVeryCompact && styles.planReadyCardTextCompact,
+                          isPending && styles.planReadyCardTextPending,
+                        ]}>
+                        {item.label}
+                      </Text>
+                      <View style={styles.planReadyCardStatus}>
+                        {isComplete ? (
+                          <Ionicons color="#111111" name="checkmark" size={isVeryCompact ? 24 : 28} />
+                        ) : isActive ? (
+                          <ActivityIndicator color="#111111" size="small" />
+                        ) : null}
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            </>
+          ) : isReminderStep ? (
             <>
               <View style={[styles.reminderHeader, isVeryCompact && styles.reminderHeaderCompact]}>
                 <Text style={[styles.reminderTitle, isVeryCompact && styles.reminderTitleCompact]}>
@@ -807,19 +962,28 @@ export default function OnboardingScreen() {
       </View>
 
       <View style={[styles.footer, { bottom: footerBottomOffset, gap: footerGap }]}>
-        {isReminderStep ? null : (
+        {isReminderStep || isPlanReadyStep ? null : (
           <Text style={[styles.note, isAgeStep && styles.ageNote, isCompact && styles.noteCompact]}>
             Your selections won’t limit access to{'\n'}any features.
           </Text>
         )}
+        {isPlanReadyStep ? (
+          <View style={styles.planReadyProgressTrack}>
+            <Animated.View style={[styles.planReadyProgressFill, planReadyBarAnimatedStyle]} />
+          </View>
+        ) : null}
         <Pressable
           accessibilityRole="button"
+          accessibilityState={{ disabled: isPlanReadyStep && !isPlanReadyComplete }}
+          disabled={isPlanReadyStep && !isPlanReadyComplete}
           onPress={continueOnboarding}
           style={({ pressed }) => [
             styles.continueButton,
             isCompact && styles.continueButtonCompact,
             isVeryCompact && styles.continueButtonVeryCompact,
+            isPlanReadyStep && styles.planReadyContinueButton,
             { height: continueButtonHeight },
+            isPlanReadyStep && !isPlanReadyComplete && styles.continueButtonDisabled,
             pressed && styles.continuePressed,
           ]}>
           <Text style={[styles.continueText, isCompact && styles.continueTextCompact]}>
@@ -854,13 +1018,15 @@ export default function OnboardingScreen() {
             </View>
             {draftReminderTime ? (
               <DateTimePicker
-                display="spinner"
+                display={iosPickerDisplay}
                 mode="time"
                 onChange={(_event, selectedDate) => {
                   if (selectedDate) {
                     setDraftReminderTime(selectedDate);
                   }
                 }}
+                textColor="#111111"
+                themeVariant="light"
                 value={draftReminderTime}
               />
             ) : null}
@@ -928,6 +1094,137 @@ const styles = StyleSheet.create({
   },
   reminderMain: {
     maxWidth: 560,
+  },
+  planReadyMain: {
+    justifyContent: 'flex-start',
+    maxWidth: 520,
+  },
+  planReadyHeader: {
+    alignItems: 'center',
+    gap: 16,
+    paddingHorizontal: 4,
+    paddingTop: 8,
+    width: '100%',
+  },
+  planReadyHeaderCompact: {
+    gap: 14,
+    paddingTop: 0,
+  },
+  planReadyHeaderVeryCompact: {
+    gap: 10,
+    paddingTop: 0,
+  },
+  planReadyTitle: {
+    color: '#111111',
+    fontFamily: Fonts.rounded,
+    fontSize: 34,
+    fontWeight: '900',
+    letterSpacing: 0,
+    lineHeight: 40,
+    textAlign: 'center',
+  },
+  planReadyTitleCompact: {
+    fontSize: 30,
+    lineHeight: 35,
+  },
+  planReadySubtitle: {
+    color: '#151515',
+    fontFamily: Fonts.sans,
+    fontSize: 19,
+    fontWeight: '400',
+    letterSpacing: 0,
+    lineHeight: 26,
+    maxWidth: 430,
+    textAlign: 'center',
+  },
+  planReadySubtitleCompact: {
+    fontSize: 17,
+    lineHeight: 24,
+    maxWidth: 360,
+  },
+  planReadySubtitleStrong: {
+    fontFamily: Fonts.rounded,
+    fontWeight: '900',
+  },
+  planReadyChecklist: {
+    gap: 8,
+    marginTop: 26,
+    width: '100%',
+  },
+  planReadyChecklistCompact: {
+    gap: 7,
+    marginTop: 20,
+  },
+  planReadyChecklistVeryCompact: {
+    gap: 6,
+    marginTop: 18,
+  },
+  planReadyCard: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    boxShadow: '0 12px 28px rgba(42, 42, 42, 0.045)',
+    flexDirection: 'row',
+    gap: 14,
+    minHeight: 74,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    width: '100%',
+  },
+  planReadyCardCompact: {
+    borderRadius: 22,
+    gap: 13,
+    minHeight: 74,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+  },
+  planReadyCardVeryCompact: {
+    borderRadius: 20,
+    gap: 12,
+    minHeight: 70,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  planReadyCardPending: {
+    opacity: 0.36,
+  },
+  planReadyCardIcon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 36,
+  },
+  planReadyCardText: {
+    color: '#111111',
+    flex: 1,
+    fontFamily: Fonts.rounded,
+    fontSize: 18,
+    fontWeight: '800',
+    letterSpacing: 0,
+    lineHeight: 24,
+  },
+  planReadyCardTextCompact: {
+    fontSize: 17,
+    lineHeight: 22,
+  },
+  planReadyCardTextPending: {
+    color: '#9B9B9B',
+  },
+  planReadyCardStatus: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 34,
+  },
+  planReadyProgressTrack: {
+    backgroundColor: '#B5B5B5',
+    borderRadius: 999,
+    height: 10,
+    overflow: 'hidden',
+    width: '72%',
+  },
+  planReadyProgressFill: {
+    backgroundColor: '#000000',
+    borderRadius: 999,
+    height: '100%',
   },
   copy: {
     alignItems: 'center',
@@ -1472,6 +1769,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 196,
   },
+  planReadyContinueButton: {
+    maxWidth: 360,
+    width: '100%',
+  },
   continueButtonCompact: {
     height: 56,
     width: 184,
@@ -1479,6 +1780,9 @@ const styles = StyleSheet.create({
   continueButtonVeryCompact: {
     height: 52,
     width: 174,
+  },
+  continueButtonDisabled: {
+    backgroundColor: '#B3B3B3',
   },
   continuePressed: {
     opacity: 0.82,
