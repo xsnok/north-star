@@ -191,22 +191,37 @@ function ReasonOption({
           isExpanded && styles.optionExpanded,
           optionAnimatedStyle,
         ]}>
-        <AnimatedText
-          style={[
-            styles.optionText,
-            isVeryCompact && styles.optionTextCompact,
-            textAnimatedStyle,
-          ]}>
-          {reason}
-        </AnimatedText>
         {isExpanded ? (
+          <View
+            style={[
+              styles.optionExpandedContent,
+              isVeryCompact && styles.optionExpandedContentVeryCompact,
+            ]}>
+            <AnimatedText
+              style={[
+                styles.optionText,
+                isVeryCompact && styles.optionTextCompact,
+                textAnimatedStyle,
+              ]}>
+              {reason}
+            </AnimatedText>
+            <AnimatedText
+              entering={FadeInDown.duration(180).easing(OPTION_ANIMATION.easing)}
+              exiting={FadeOutUp.duration(140).easing(OPTION_ANIMATION.easing)}
+              style={[styles.factText, isVeryCompact && styles.factTextCompact]}>
+              {fact}
+            </AnimatedText>
+          </View>
+        ) : (
           <AnimatedText
-            entering={FadeInDown.duration(180).easing(OPTION_ANIMATION.easing)}
-            exiting={FadeOutUp.duration(140).easing(OPTION_ANIMATION.easing)}
-            style={[styles.factText, isVeryCompact && styles.factTextCompact]}>
-            {fact}
+            style={[
+              styles.optionText,
+              isVeryCompact && styles.optionTextCompact,
+              textAnimatedStyle,
+            ]}>
+            {reason}
           </AnimatedText>
-        ) : null}
+        )}
       </Animated.View>
     </Pressable>
   );
@@ -1189,6 +1204,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     paddingVertical: 22,
   },
+  optionExpandedContent: {
+    alignItems: 'center',
+    gap: 12,
+    width: '100%',
+  },
+  optionExpandedContentVeryCompact: {
+    gap: 8,
+  },
   optionText: {
     color: '#151515',
     fontFamily: Fonts.rounded,
@@ -1408,14 +1431,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0,
     lineHeight: 23,
-    marginTop: 12,
     maxWidth: 430,
     textAlign: 'center',
   },
   factTextCompact: {
     fontSize: 15,
     lineHeight: 21,
-    marginTop: 8,
   },
   note: {
     color: '#8F8F8F',
