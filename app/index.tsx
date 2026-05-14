@@ -764,14 +764,7 @@ export default function OnboardingScreen() {
               </View>
             </View>
               ) : (
-            <View
-              style={[
-                styles.optionsSlot,
-                expandedReason && {
-                  justifyContent: 'flex-start',
-                  paddingTop: isVeryCompact ? 16 : 24,
-                },
-              ]}>
+            <View style={styles.optionsSlot}>
               <View style={[styles.options, isCompact && styles.optionsCompact]}>
                 {REASONS.map((reason) => {
                   const isSelected = selectedReasons.includes(reason);
