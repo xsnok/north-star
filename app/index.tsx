@@ -2,6 +2,7 @@ import DateTimePicker, {
   DateTimePickerAndroid,
   type DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
+import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import * as Notifications from 'expo-notifications';
 import { StatusBar } from 'expo-status-bar';
@@ -18,7 +19,6 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   Easing,
   FadeInDown,
@@ -32,6 +32,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { PaymentScreen } from '@/components/payment-screen';
 import { Fonts } from '@/constants/theme';
 
 const REASONS = [
@@ -371,7 +372,9 @@ function ReminderOption({
 }
 
 export default function OnboardingScreen() {
-  const [step, setStep] = useState<'reasons' | 'age' | 'reminders' | 'planReady'>('reasons');
+  const [step, setStep] = useState<'reasons' | 'age' | 'reminders' | 'planReady' | 'payment'>(
+    'reasons'
+  );
   const [selectedReasons, setSelectedReasons] = useState<string[]>([]);
   const [expandedReason, setExpandedReason] = useState<string | null>(null);
   const [selectedAgeRange, setSelectedAgeRange] = useState<string | null>(null);
@@ -389,6 +392,7 @@ export default function OnboardingScreen() {
   const isReminderStep = step === 'reminders';
   const isPlanReadyStep = step === 'planReady';
   const isPlanReadyComplete = planReadyStage >= PLAN_READY_ITEMS.length;
+  const isPaymentStep = step === 'payment';
   const activeReminder = reminders.find((reminder) => reminder.id === activeReminderId) ?? null;
   const enabledReminderCount = reminders.filter((reminder) => reminder.enabled).length;
   const continueButtonHeight = isVeryCompact ? 52 : isCompact ? 56 : 62;
@@ -684,7 +688,9 @@ export default function OnboardingScreen() {
   };
 
   const goBack = () => {
-    if (step === 'planReady') {
+    if (step === 'payment') {
+      setStep('planReady');
+    } else if (step === 'planReady') {
       setStep('reminders');
     } else if (step === 'reminders') {
       setStep('age');
@@ -702,9 +708,13 @@ export default function OnboardingScreen() {
       await scheduleEnabledReminders();
       setStep('planReady');
     } else if (step === 'planReady' && isPlanReadyComplete) {
-      Alert.alert('Plan ready', 'Your first reflection is ready when you are.');
+      setStep('payment');
     }
   };
+
+  if (isPaymentStep) {
+    return <PaymentScreen />;
+  }
 
   return (
     <View style={styles.screen}>
@@ -754,7 +764,7 @@ export default function OnboardingScreen() {
                     ? 0
                     : 8
                 : isReminderStep
-                ? isVeryCompact
+                  ? isVeryCompact
                   ? 2
                   : isCompact
                     ? 10

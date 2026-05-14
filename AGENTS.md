@@ -4,8 +4,8 @@ North Star is an Expo React Native app for a guided journaling and reflection ex
 
 ## Required Native QA
 
-- For native iOS layout or visual QA, do not rely on Expo web preview as the source of truth. Use Computer Use to inspect and control the iOS Simulator, or ask the user for a simulator screenshot before making layout-sensitive changes.
-- When changing this app's screen layout, verify in Simulator when feasible, especially for spacing around fixed footers, safe areas, compact screen heights, and expanded option states.
+- Do not launch or test in the iOS Simulator unless the user explicitly asks for simulator testing. The user will usually test native layout changes first.
+- If the user does ask for native iOS layout or visual QA, do not rely on Expo web preview as the source of truth. Use Computer Use to inspect and control the iOS Simulator, or ask the user for a simulator screenshot.
 - Web preview may be used for quick checks, but native behavior is authoritative for haptics, safe areas, platform fonts, status bar behavior, and iOS visual polish.
 
 ## App Architecture
@@ -46,6 +46,6 @@ North Star is an Expo React Native app for a guided journaling and reflection ex
 ## Before Committing
 
 - Run `npm run lint`.
-- For visual/layout changes, run the app on the relevant native target and inspect the affected screen state.
-- Check both default and compact-height behavior when editing `app/index.tsx`.
+- For visual/layout changes, do not run the app on a native target unless the user explicitly asks for it.
+- When editing `app/index.tsx`, reason through both default and compact-height behavior, and let the user perform native visual testing unless they request simulator QA.
 - Review `git diff` to ensure only intentional project files changed.
