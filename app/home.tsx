@@ -19,6 +19,7 @@ import {
   LiquidGlassNavbar,
 } from '@/components/liquid-glass-navbar';
 import { type DailyCheckIn, loadDailyCheckIns } from '@/lib/daily-checkins';
+import { buttonHaptic } from '@/lib/haptics';
 
 const WEEKDAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'] as const;
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
@@ -225,7 +226,10 @@ export default function HomeScreen() {
 
         <Pressable
           accessibilityRole="button"
-          onPress={() => router.push('/daily-check-in')}
+          onPress={() => {
+            buttonHaptic();
+            router.push('/daily-check-in');
+          }}
           style={({ pressed }) => [
             styles.checkInButton,
             isCompact && styles.checkInButtonCompact,
@@ -288,7 +292,10 @@ export default function HomeScreen() {
       <Pressable
         accessibilityLabel="Add daily check-in"
         accessibilityRole="button"
-        onPress={() => router.push('/daily-check-in')}
+        onPress={() => {
+          buttonHaptic();
+          router.push('/daily-check-in');
+        }}
         style={({ pressed }) => [
           styles.addButton,
           {

@@ -3,7 +3,6 @@ import DateTimePicker, {
   type DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
 import * as Notifications from 'expo-notifications';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useState } from 'react';
@@ -33,6 +32,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PaymentScreen } from '@/components/payment-screen';
 import { Fonts } from '@/constants/theme';
+import { buttonHaptic, selectionHaptic } from '@/lib/haptics';
 
 const REASONS = [
   'Elevate mood',
@@ -441,9 +441,7 @@ export default function OnboardingScreen() {
   }, [isPlanReadyStep, planReadyProgress]);
 
   const toggleReason = (reason: string) => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.selectionAsync();
-    }
+    selectionHaptic();
 
     setSelectedReasons((current) => {
       const isAlreadySelected = current.includes(reason);
@@ -464,9 +462,7 @@ export default function OnboardingScreen() {
   };
 
   const selectAgeRange = (ageRange: string) => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.selectionAsync();
-    }
+    selectionHaptic();
 
     setSelectedAgeRange(ageRange);
   };
@@ -531,9 +527,7 @@ export default function OnboardingScreen() {
   };
 
   const toggleReminder = async (reminderId: Reminder['id']) => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.selectionAsync();
-    }
+    selectionHaptic();
 
     const reminder = reminders.find((item) => item.id === reminderId);
 
@@ -574,14 +568,14 @@ export default function OnboardingScreen() {
   };
 
   const commitReminderTime = async (reminderId: Reminder['id'], date: Date) => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.selectionAsync();
-    }
-
     const reminder = reminders.find((item) => item.id === reminderId);
 
     if (!reminder) {
       return;
+    }
+
+    if (reminder.hour !== date.getHours() || reminder.minute !== date.getMinutes()) {
+      selectionHaptic();
     }
 
     const nextReminder = {
@@ -635,6 +629,8 @@ export default function OnboardingScreen() {
       return;
     }
 
+    buttonHaptic();
+
     const pickerValue = getDateFromReminder(reminder);
 
     if (Platform.OS === 'android') {
@@ -656,12 +652,18 @@ export default function OnboardingScreen() {
     setDraftReminderTime(pickerValue);
   };
 
-  const closeReminderTimePicker = () => {
+  const closeReminderTimePicker = (withHaptic = false) => {
+    if (withHaptic) {
+      buttonHaptic();
+    }
+
     setActiveReminderId(null);
     setDraftReminderTime(null);
   };
 
   const saveDraftReminderTime = () => {
+    buttonHaptic();
+
     if (activeReminderId && draftReminderTime) {
       void commitReminderTime(activeReminderId, draftReminderTime);
     }
@@ -686,6 +688,12 @@ export default function OnboardingScreen() {
   };
 
   const goBack = () => {
+    if (step === 'reasons') {
+      return;
+    }
+
+    buttonHaptic();
+
     if (step === 'payment') {
       setStep('planReady');
     } else if (step === 'planReady') {
@@ -698,6 +706,8 @@ export default function OnboardingScreen() {
   };
 
   const continueOnboarding = async () => {
+    buttonHaptic();
+
     if (step === 'reasons') {
       setStep('age');
     } else if (step === 'age') {
@@ -1004,13 +1014,13 @@ export default function OnboardingScreen() {
         animationType="fade"
         transparent
         visible={Platform.OS === 'ios' && Boolean(activeReminder)}
-        onRequestClose={closeReminderTimePicker}>
-        <Pressable style={styles.timePickerBackdrop} onPress={closeReminderTimePicker}>
+        onRequestClose={() => closeReminderTimePicker()}>
+        <Pressable style={styles.timePickerBackdrop} onPress={() => closeReminderTimePicker(true)}>
           <Pressable style={styles.timePickerSheet}>
             <View style={styles.timePickerHeader}>
               <Pressable
                 accessibilityRole="button"
-                onPress={closeReminderTimePicker}
+                onPress={() => closeReminderTimePicker(true)}
                 style={({ pressed }) => [styles.timePickerAction, pressed && styles.pressed]}>
                 <Text style={styles.timePickerCancelText}>Cancel</Text>
               </Pressable>
@@ -1030,6 +1040,9 @@ export default function OnboardingScreen() {
                 mode="time"
                 onChange={(_event, selectedDate) => {
                   if (selectedDate) {
+                    if (selectedDate.getTime() !== draftReminderTime.getTime()) {
+                      selectionHaptic();
+                    }
                     setDraftReminderTime(selectedDate);
                   }
                 }}

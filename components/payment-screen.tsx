@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Fonts } from '@/constants/theme';
+import { buttonHaptic } from '@/lib/haptics';
 
 const FEATURES = [
   {
@@ -70,6 +71,10 @@ export function PaymentScreen() {
             accessibilityLabel="Close payment screen"
             accessibilityRole="button"
             hitSlop={14}
+            onPress={() => {
+              buttonHaptic();
+              router.replace('/home');
+            }}
             style={({ pressed }) => [styles.closeButton, pressed && styles.pressed]}>
             <Ionicons color="#111111" name="close" size={34} />
           </Pressable>
@@ -134,7 +139,10 @@ export function PaymentScreen() {
         </View>
         <Pressable
           accessibilityRole="button"
-          onPress={() => router.replace('/home')}
+          onPress={() => {
+            buttonHaptic();
+            router.replace('/home');
+          }}
           style={({ pressed }) => [styles.ctaButton, pressed && styles.ctaButtonPressed]}>
           <Text style={styles.ctaText}>Try 3 days free</Text>
         </Pressable>

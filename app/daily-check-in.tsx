@@ -1,8 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useMemo, useState, type ComponentProps } from 'react';
+import { useEffect, useMemo, useRef, useState, type ComponentProps } from 'react';
 import {
   ActivityIndicator,
   Keyboard,
@@ -26,6 +25,7 @@ import Animated, {
 
 import { Fonts } from '@/constants/theme';
 import { saveDailyCheckIn } from '@/lib/daily-checkins';
+import { buttonHaptic, selectionHaptic, successHaptic } from '@/lib/haptics';
 
 type FocusOption = {
   icon: ComponentProps<typeof Ionicons>['name'];
@@ -61,7 +61,12 @@ function clamp(value: number, min: number, max: number) {
 
 function RestedSlider({ onChange, value }: RestedSliderProps) {
   const [trackWidth, setTrackWidth] = useState(0);
+  const lastHapticValue = useRef(value);
   const progress = (value - 1) / 9;
+
+  useEffect(() => {
+    lastHapticValue.current = value;
+  }, [value]);
 
   const updateFromLocation = (locationX: number) => {
     if (!trackWidth) {
@@ -69,6 +74,10 @@ function RestedSlider({ onChange, value }: RestedSliderProps) {
     }
 
     const nextValue = clamp(Math.round((clamp(locationX, 0, trackWidth) / trackWidth) * 9) + 1, 1, 10);
+    if (nextValue !== lastHapticValue.current) {
+      selectionHaptic();
+      lastHapticValue.current = nextValue;
+    }
     onChange(nextValue);
   };
 
@@ -95,9 +104,19 @@ function RestedSlider({ onChange, value }: RestedSliderProps) {
       accessibilityValue={{ max: 10, min: 1, now: value, text: `${value} out of 10` }}
       onAccessibilityAction={(event) => {
         if (event.nativeEvent.actionName === 'increment') {
-          onChange(clamp(value + 1, 1, 10));
+          const nextValue = clamp(value + 1, 1, 10);
+          if (nextValue !== lastHapticValue.current) {
+            selectionHaptic();
+            lastHapticValue.current = nextValue;
+          }
+          onChange(nextValue);
         } else if (event.nativeEvent.actionName === 'decrement') {
-          onChange(clamp(value - 1, 1, 10));
+          const nextValue = clamp(value - 1, 1, 10);
+          if (nextValue !== lastHapticValue.current) {
+            selectionHaptic();
+            lastHapticValue.current = nextValue;
+          }
+          onChange(nextValue);
         }
       }}
       style={styles.sliderArea}>
@@ -185,9 +204,7 @@ export default function DailyCheckInScreen() {
   }, [actionPlanText, focuses.length, goalsText, step]);
 
   const toggleFocus = (focus: string) => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.selectionAsync();
-    }
+    selectionHaptic();
 
     setFocuses((currentFocuses) => {
       if (currentFocuses.includes(focus)) {
@@ -203,6 +220,8 @@ export default function DailyCheckInScreen() {
   };
 
   const goBack = () => {
+    buttonHaptic();
+
     if (isWritingStep) {
       Keyboard.dismiss();
     }
@@ -220,12 +239,10 @@ export default function DailyCheckInScreen() {
       return;
     }
 
+    buttonHaptic();
+
     if (isWritingStep) {
       Keyboard.dismiss();
-    }
-
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.selectionAsync();
     }
 
     if (stepIndex < STEP_COUNT - 1) {
@@ -247,6 +264,7 @@ export default function DailyCheckInScreen() {
         restedScore,
       });
 
+      successHaptic();
       router.replace('/home');
     } finally {
       setIsSaving(false);
@@ -433,9 +451,7 @@ export default function DailyCheckInScreen() {
               accessibilityLabel="Add to reflection"
               accessibilityRole="button"
               onPress={() => {
-                if (process.env.EXPO_OS === 'ios') {
-                  Haptics.selectionAsync();
-                }
+                selectionHaptic();
               }}
               style={({ pressed }) => [
                 styles.editorIconButton,

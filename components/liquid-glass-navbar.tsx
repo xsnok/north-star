@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View, type ComponentProps } from 'react-na
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Fonts } from '@/constants/theme';
+import { buttonHaptic } from '@/lib/haptics';
 
 export type LiquidGlassTab = 'home' | 'ideas' | 'explore' | 'history' | 'trends';
 
@@ -52,15 +53,23 @@ function NavbarChrome({ activeTab, onTabPress }: LiquidGlassNavbarProps) {
         {NAV_ITEMS.map((item) => {
           const isActive = item.tab === activeTab;
           const isPlaceholder = item.tab !== 'home';
+          const isDisabled = isPlaceholder || !onTabPress;
 
           return (
             <Pressable
               accessibilityLabel={item.label}
               accessibilityRole="button"
-              accessibilityState={{ disabled: isPlaceholder, selected: isActive }}
-              disabled={isPlaceholder}
+              accessibilityState={{ disabled: isDisabled, selected: isActive }}
+              disabled={isDisabled}
               key={item.tab}
-              onPress={() => onTabPress?.(item.tab)}
+              onPress={() => {
+                if (!onTabPress) {
+                  return;
+                }
+
+                buttonHaptic();
+                onTabPress(item.tab);
+              }}
               style={({ pressed }) => [
                 styles.item,
                 isActive && styles.activeItem,
