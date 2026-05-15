@@ -62,17 +62,20 @@ function clamp(value: number, min: number, max: number) {
 function RestedSlider({ onChange, value }: RestedSliderProps) {
   const [trackWidth, setTrackWidth] = useState(0);
   const lastHapticValue = useRef(value);
+  const trackLeft = useRef(0);
+  const trackRef = useRef<View>(null);
   const progress = (value - 1) / 9;
 
   useEffect(() => {
     lastHapticValue.current = value;
   }, [value]);
 
-  const updateFromLocation = (locationX: number) => {
+  const updateFromPageX = (pageX: number) => {
     if (!trackWidth) {
       return;
     }
 
+    const locationX = pageX - trackLeft.current;
     const nextValue = clamp(Math.round((clamp(locationX, 0, trackWidth) / trackWidth) * 9) + 1, 1, 10);
     if (nextValue !== lastHapticValue.current) {
       selectionHaptic();
@@ -81,19 +84,30 @@ function RestedSlider({ onChange, value }: RestedSliderProps) {
     onChange(nextValue);
   };
 
+  const measureTrack = (onMeasured?: () => void) => {
+    trackRef.current?.measureInWindow((x) => {
+      trackLeft.current = x;
+      onMeasured?.();
+    });
+  };
+
   const panResponder = PanResponder.create({
     onMoveShouldSetPanResponder: () => true,
     onPanResponderGrant: (event) => {
-      updateFromLocation(event.nativeEvent.locationX);
+      const pageX = event.nativeEvent.pageX;
+      measureTrack(() => {
+        updateFromPageX(pageX);
+      });
     },
     onPanResponderMove: (event) => {
-      updateFromLocation(event.nativeEvent.locationX);
+      updateFromPageX(event.nativeEvent.pageX);
     },
     onStartShouldSetPanResponder: () => true,
   });
 
   const onTrackLayout = (event: LayoutChangeEvent) => {
     setTrackWidth(event.nativeEvent.layout.width);
+    measureTrack();
   };
 
   return (
@@ -123,9 +137,10 @@ function RestedSlider({ onChange, value }: RestedSliderProps) {
       <View
         {...panResponder.panHandlers}
         onLayout={onTrackLayout}
+        ref={trackRef}
         style={styles.sliderTrack}>
-        <View style={[styles.sliderFill, { width: `${progress * 100}%` }]} />
-        <View style={[styles.sliderThumb, { left: `${progress * 100}%` }]}>
+        <View pointerEvents="none" style={[styles.sliderFill, { width: `${progress * 100}%` }]} />
+        <View pointerEvents="none" style={[styles.sliderThumb, { left: `${progress * 100}%` }]}>
           <Text style={styles.sliderThumbText}>{value}</Text>
         </View>
       </View>
@@ -424,7 +439,11 @@ export default function DailyCheckInScreen() {
             <TextInput
               multiline
               onChangeText={step === 'goals' ? setGoalsText : setActionPlanText}
-              placeholder={step === 'goals' ? 'By the end of today, I want to...' : 'I will make progress by...'}
+              placeholder={
+                step === 'goals'
+                  ? 'In 5 years, I am...'
+                  : 'Today I move closer to that life by...'
+              }
               placeholderTextColor="#A4A49C"
               returnKeyType="default"
               style={[
