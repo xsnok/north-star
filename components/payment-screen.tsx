@@ -1,4 +1,5 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import {
   Pressable,
@@ -37,9 +38,10 @@ const FEATURES = [
 
 export function PaymentScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { height } = useWindowDimensions();
   const isCompact = height < 760;
-  const footerHeight = isCompact ? 218 : 250;
+  const footerHeight = isCompact ? 184 : 210;
   const footerBottomPadding = Math.max(insets.bottom, 18);
 
   return (
@@ -132,6 +134,7 @@ export function PaymentScreen() {
         </View>
         <Pressable
           accessibilityRole="button"
+          onPress={() => router.replace('/home')}
           style={({ pressed }) => [styles.ctaButton, pressed && styles.ctaButtonPressed]}>
           <Text style={styles.ctaText}>Try 3 days free</Text>
         </Pressable>
@@ -168,7 +171,7 @@ const styles = StyleSheet.create({
   segment: {
     alignItems: 'center',
     flex: 1,
-    height: 50,
+    height: 44,
     justifyContent: 'center',
   },
   segmentSelected: {
@@ -176,20 +179,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#5F5F5F',
     borderRadius: 999,
     flex: 1,
-    height: 50,
+    height: 44,
     justifyContent: 'center',
   },
   segmentText: {
     color: '#111111',
     fontFamily: Fonts.sans,
-    fontSize: 21,
+    fontSize: 18,
     fontWeight: '500',
     letterSpacing: 0,
   },
   segmentSelectedText: {
     color: '#FFFFFF',
     fontFamily: Fonts.rounded,
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
     letterSpacing: 0,
   },
@@ -203,39 +206,39 @@ const styles = StyleSheet.create({
     opacity: 0.55,
   },
   hero: {
-    gap: 26,
-    paddingTop: 60,
+    gap: 16,
+    paddingTop: 34,
     width: '100%',
     zIndex: 2,
   },
   heroCompact: {
-    gap: 18,
-    paddingTop: 38,
+    gap: 12,
+    paddingTop: 22,
   },
   title: {
     color: '#101014',
     fontFamily: Fonts.rounded,
-    fontSize: 42,
+    fontSize: 29,
     fontWeight: '900',
     letterSpacing: 0,
-    lineHeight: 56,
+    lineHeight: 37,
   },
   titleCompact: {
-    fontSize: 38,
-    lineHeight: 50,
+    fontSize: 27,
+    lineHeight: 34,
   },
   subtitle: {
     color: '#7C7C82',
     fontFamily: Fonts.rounded,
-    fontSize: 26,
+    fontSize: 18,
     fontWeight: '800',
     letterSpacing: 0,
-    lineHeight: 36,
-    maxWidth: 330,
+    lineHeight: 25,
+    maxWidth: 270,
   },
   subtitleCompact: {
-    fontSize: 23,
-    lineHeight: 32,
+    fontSize: 17,
+    lineHeight: 23,
   },
   subtitleStrong: {
     color: '#5F5F5F',
@@ -260,13 +263,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     boxShadow: '0 16px 34px rgba(20, 20, 20, 0.055)',
-    marginTop: 76,
+    marginTop: 32,
     overflow: 'hidden',
     width: '100%',
     zIndex: 2,
   },
   featureCardCompact: {
-    marginTop: 54,
+    marginTop: 24,
   },
   featureRow: {
     alignItems: 'center',
@@ -298,43 +301,43 @@ const styles = StyleSheet.create({
   featureTitle: {
     color: '#111111',
     fontFamily: Fonts.rounded,
-    fontSize: 22,
+    fontSize: 19,
     fontWeight: '900',
     letterSpacing: 0,
-    lineHeight: 27,
+    lineHeight: 23,
   },
   featureTitleCompact: {
-    fontSize: 20,
-    lineHeight: 24,
+    fontSize: 17,
+    lineHeight: 21,
   },
   featureDescription: {
     color: '#858585',
     fontFamily: Fonts.sans,
-    fontSize: 21,
+    fontSize: 15,
     fontWeight: '500',
     letterSpacing: 0,
-    lineHeight: 30,
+    lineHeight: 21,
   },
   featureDescriptionCompact: {
-    fontSize: 18,
-    lineHeight: 25,
+    fontSize: 14,
+    lineHeight: 19,
   },
   aiBadge: {
     alignItems: 'center',
     backgroundColor: '#737373',
     borderRadius: 999,
-    height: 50,
+    height: 42,
     justifyContent: 'center',
-    minWidth: 66,
-    paddingHorizontal: 18,
+    minWidth: 56,
+    paddingHorizontal: 15,
   },
   aiBadgeText: {
     color: '#FFFFFF',
     fontFamily: Fonts.rounded,
-    fontSize: 20,
+    fontSize: 15,
     fontWeight: '900',
     letterSpacing: 0,
-    lineHeight: 24,
+    lineHeight: 18,
   },
   footer: {
     alignItems: 'center',
@@ -342,49 +345,49 @@ const styles = StyleSheet.create({
     borderTopColor: '#D7D7D7',
     borderTopWidth: StyleSheet.hairlineWidth,
     bottom: 0,
-    gap: 26,
+    gap: 18,
     left: 0,
     paddingHorizontal: 24,
-    paddingTop: 24,
+    paddingTop: 18,
     position: 'absolute',
     right: 0,
   },
   planCopy: {
     alignItems: 'center',
-    gap: 7,
+    gap: 5,
   },
   planTitle: {
     color: '#111111',
     fontFamily: Fonts.rounded,
-    fontSize: 22,
+    fontSize: 17,
     fontWeight: '900',
     letterSpacing: 0,
-    lineHeight: 27,
+    lineHeight: 21,
     textAlign: 'center',
   },
   planPrice: {
     color: '#111111',
     fontFamily: Fonts.rounded,
-    fontSize: 22,
+    fontSize: 17,
     fontWeight: '900',
     letterSpacing: 0,
-    lineHeight: 27,
+    lineHeight: 21,
     textAlign: 'center',
   },
   cancelText: {
     color: '#111111',
     fontFamily: Fonts.rounded,
-    fontSize: 22,
+    fontSize: 17,
     fontWeight: '900',
     letterSpacing: 0,
-    lineHeight: 27,
+    lineHeight: 21,
     textAlign: 'center',
   },
   ctaButton: {
     alignItems: 'center',
     backgroundColor: '#5F5F5F',
     borderRadius: 999,
-    height: 76,
+    height: 64,
     justifyContent: 'center',
     maxWidth: 320,
     width: '100%',
@@ -396,9 +399,9 @@ const styles = StyleSheet.create({
   ctaText: {
     color: '#FFFFFF',
     fontFamily: Fonts.rounded,
-    fontSize: 30,
+    fontSize: 20,
     fontWeight: '900',
     letterSpacing: 0,
-    lineHeight: 36,
+    lineHeight: 24,
   },
 });

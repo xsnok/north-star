@@ -1,6 +1,6 @@
 # Project Agent Rules
 
-North Star is an Expo React Native app for a guided journaling and reflection experience. The current custom product surface is the onboarding screen in `app/index.tsx`, where users choose why they want to journal and see contextual supporting copy for selected reasons.
+North Star is an Expo React Native app for a guided journaling and reflection experience. Current custom product surfaces include onboarding in `app/index.tsx`, home in `app/home.tsx`, and daily reflection flows.
 
 ## Required Native QA
 
@@ -12,6 +12,7 @@ North Star is an Expo React Native app for a guided journaling and reflection ex
 
 - `app/_layout.tsx` defines the root Expo Router stack, React Navigation theme provider, and status bar behavior.
 - `app/index.tsx` is the main onboarding screen. It contains the current reason data, selection state, expanded-state behavior, Reanimated transitions, responsive height rules, safe-area footer math, and screen styles.
+- `app/home.tsx` is the signed-in/home app surface. When the user refers to the "app", "home", or the top of the actual app portion, prefer this screen over onboarding unless context clearly says otherwise.
 - `app/modal.tsx` is still starter modal content and is not part of the current core product experience.
 - `constants/theme.ts` contains starter light/dark color tokens plus platform font-family mappings used by the onboarding screen.
 - `components/` and `hooks/` are mostly Expo starter primitives. Reuse them where they fit, but do not assume they define a complete design system yet.
@@ -31,6 +32,7 @@ North Star is an Expo React Native app for a guided journaling and reflection ex
 - This project uses TypeScript in strict mode and Expo Router typed routes.
 - Use the `@/` alias for repository-root imports when it improves clarity.
 - Prefer React Native primitives and existing Expo dependencies over adding new packages for small UI behavior.
+- For placement-sensitive UI requests, inspect the current app context before editing. If the target screen or placement is ambiguous, ask the user where it should go instead of assuming onboarding.
 - Keep layout-sensitive constants and responsive calculations easy to audit. The current onboarding screen uses window height breakpoints and safe-area insets to keep the footer from covering content.
 - Keep copy concise and product-oriented. Avoid reintroducing generic Expo starter language into product screens.
 - Do not make broad starter-code cleanup changes unless the user asks; the app is early-stage and some starter files are intentionally still present.
@@ -45,7 +47,6 @@ North Star is an Expo React Native app for a guided journaling and reflection ex
 
 ## Before Committing
 
-- Run `npm run lint`.
 - For visual/layout changes, do not run the app on a native target unless the user explicitly asks for it.
 - When editing `app/index.tsx`, reason through both default and compact-height behavior, and let the user perform native visual testing unless they request simulator QA.
 - Review `git diff` to ensure only intentional project files changed.
