@@ -15,7 +15,6 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  useColorScheme,
   useWindowDimensions,
   View,
 } from 'react-native';
@@ -382,7 +381,6 @@ export default function OnboardingScreen() {
   const [activeReminderId, setActiveReminderId] = useState<Reminder['id'] | null>(null);
   const [draftReminderTime, setDraftReminderTime] = useState<Date | null>(null);
   const [planReadyStage, setPlanReadyStage] = useState(0);
-  const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
   const planReadyProgress = useSharedValue(0);
@@ -404,7 +402,7 @@ export default function OnboardingScreen() {
     ? Math.max(insets.bottom + 16, 24)
     : Math.max(insets.bottom + 28, 40);
   const footerReserve = footerHeight + footerBottomOffset + 24;
-  const iosPickerDisplay = colorScheme === 'dark' ? 'default' : 'spinner';
+  const iosPickerDisplay = 'spinner';
   const focusedReasons = useMemo(() => {
     if (!selectedReasons.length) {
       return 'Your journaling goals.';

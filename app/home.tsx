@@ -22,6 +22,7 @@ import { type DailyCheckIn, loadDailyCheckIns } from '@/lib/daily-checkins';
 
 const WEEKDAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'] as const;
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
+const HOME_FAB_SIZE = 64;
 
 function getLocalDateKey(date: Date) {
   const year = date.getFullYear();
@@ -194,8 +195,8 @@ export default function HomeScreen() {
           styles.content,
           {
             paddingBottom: Math.max(
-              insets.bottom + LIQUID_GLASS_NAVBAR_RESERVED_HEIGHT,
-              LIQUID_GLASS_NAVBAR_RESERVED_HEIGHT + 24
+              insets.bottom + LIQUID_GLASS_NAVBAR_RESERVED_HEIGHT + HOME_FAB_SIZE,
+              LIQUID_GLASS_NAVBAR_RESERVED_HEIGHT + HOME_FAB_SIZE + 24
             ),
             paddingTop: Math.max(insets.top - (isCompact ? 6 : 2), 16),
           },
@@ -284,6 +285,22 @@ export default function HomeScreen() {
           </View>
         )}
       </ScrollView>
+      <Pressable
+        accessibilityLabel="Add daily check-in"
+        accessibilityRole="button"
+        onPress={() => router.push('/daily-check-in')}
+        style={({ pressed }) => [
+          styles.addButton,
+          {
+            bottom: Math.max(
+              insets.bottom + LIQUID_GLASS_NAVBAR_RESERVED_HEIGHT,
+              LIQUID_GLASS_NAVBAR_RESERVED_HEIGHT + 12
+            ),
+          },
+          pressed && styles.addButtonPressed,
+        ]}>
+        <Ionicons color="#FFFFFF" name="add-circle" size={34} />
+      </Pressable>
       <LiquidGlassNavbar activeTab="home" />
     </View>
   );
@@ -293,6 +310,27 @@ const styles = StyleSheet.create({
   screen: {
     backgroundColor: '#FCFCF8',
     flex: 1,
+  },
+  addButton: {
+    alignItems: 'center',
+    backgroundColor: '#111111',
+    borderColor: 'rgba(255, 255, 255, 0.84)',
+    borderRadius: HOME_FAB_SIZE / 2,
+    borderWidth: 1,
+    height: HOME_FAB_SIZE,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 24,
+    shadowColor: '#000000',
+    shadowOffset: { height: 10, width: 0 },
+    shadowOpacity: 0.18,
+    shadowRadius: 22,
+    width: HOME_FAB_SIZE,
+    zIndex: 30,
+  },
+  addButtonPressed: {
+    opacity: 0.84,
+    transform: [{ scale: 0.97 }],
   },
   content: {
     gap: 24,
