@@ -18,6 +18,7 @@ import {
   LIQUID_GLASS_NAVBAR_RESERVED_HEIGHT,
   LiquidGlassNavbar,
 } from '@/components/liquid-glass-navbar';
+import { StarLogo } from '@/components/star-logo';
 import { type DailyCheckIn, loadDailyCheckIns } from '@/lib/daily-checkins';
 import { buttonHaptic } from '@/lib/haptics';
 
@@ -209,15 +210,19 @@ export default function HomeScreen() {
 
         <View style={styles.header}>
           <View style={styles.mark}>
-            <Text style={styles.markText}>N.</Text>
+            <StarLogo style={styles.markLogo} tintColor="#FFFFFF" />
           </View>
           <View style={styles.headerCopy}>
             <Text style={[styles.eyebrow, isCompact && styles.eyebrowCompact]}>
               Today
             </Text>
-            <Text style={[styles.title, isCompact && styles.titleCompact]}>
-              Set your North Star.
-            </Text>
+            <View style={styles.titleLogoRow}>
+              <Text style={[styles.title, isCompact && styles.titleCompact]}>Set your</Text>
+              <StarLogo
+                style={[styles.titleLogo, isCompact && styles.titleLogoCompact]}
+                tintColor="#101010"
+              />
+            </View>
             <Text style={[styles.subtitle, isCompact && styles.subtitleCompact]}>
               Check in, choose your focus, and turn today’s goals into a clear plan.
             </Text>
@@ -450,12 +455,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 44,
   },
-  markText: {
-    color: '#FFFFFF',
-    fontFamily: Fonts.rounded,
-    fontSize: 19,
-    fontWeight: '900',
-    letterSpacing: 0,
+  markLogo: {
+    height: 29,
+    width: 29,
   },
   headerCopy: {
     gap: 10,
@@ -482,6 +484,20 @@ const styles = StyleSheet.create({
   titleCompact: {
     fontSize: 31,
     lineHeight: 37,
+  },
+  titleLogoRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  titleLogo: {
+    height: 39,
+    width: 39,
+  },
+  titleLogoCompact: {
+    height: 34,
+    width: 34,
   },
   subtitle: {
     color: '#747474',

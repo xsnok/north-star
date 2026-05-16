@@ -31,6 +31,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PaymentScreen } from '@/components/payment-screen';
+import { StarLogo } from '@/components/star-logo';
 import { Fonts } from '@/constants/theme';
 import { buttonHaptic, selectionHaptic } from '@/lib/haptics';
 
@@ -78,7 +79,7 @@ const REASON_FACTS: Record<string, string> = {
 const PLAN_READY_ITEMS = [
   {
     icon: 'shield-checkmark-outline',
-    label: 'Everything you add to North Star is secure & private',
+    label: 'Everything you add is secure & private',
   },
   {
     icon: 'sparkles-outline',
@@ -507,7 +508,7 @@ export default function OnboardingScreen() {
     return Notifications.scheduleNotificationAsync({
       content: {
         body: REMINDER_NOTIFICATION_BODY,
-        title: 'North Star',
+        title: 'Journal reminder',
       },
       trigger: {
         channelId: NOTIFICATION_CHANNEL_ID,
@@ -880,15 +881,23 @@ export default function OnboardingScreen() {
                       isVeryCompact && styles.notificationPreviewVeryCompact,
                     ]}>
                     <View style={[styles.notificationIcon, isVeryCompact && styles.notificationIconCompact]}>
-                      <Text style={[styles.notificationIconText, isVeryCompact && styles.notificationIconTextCompact]}>
-                        N.
-                      </Text>
+                      <StarLogo
+                        style={[
+                          styles.notificationLogo,
+                          isVeryCompact && styles.notificationLogoCompact,
+                        ]}
+                        tintColor="#191919"
+                      />
                     </View>
                     <View style={styles.notificationBody}>
                       <View style={styles.notificationTopLine}>
-                        <Text style={[styles.notificationAppName, isVeryCompact && styles.notificationTextCompact]}>
-                          North Star
-                        </Text>
+                        <StarLogo
+                          style={[
+                            styles.notificationAppLogo,
+                            isVeryCompact && styles.notificationAppLogoCompact,
+                          ]}
+                          tintColor="#111111"
+                        />
                         <Text style={[styles.notificationNow, isVeryCompact && styles.notificationTextCompact]}>
                           now
                         </Text>
@@ -1428,17 +1437,13 @@ const styles = StyleSheet.create({
     height: 48,
     width: 48,
   },
-  notificationIconText: {
-    color: '#191919',
-    fontFamily: Fonts.rounded,
-    fontSize: 29,
-    fontWeight: '800',
-    letterSpacing: 0,
-    lineHeight: 33,
+  notificationLogo: {
+    height: 34,
+    width: 34,
   },
-  notificationIconTextCompact: {
-    fontSize: 25,
-    lineHeight: 29,
+  notificationLogoCompact: {
+    height: 30,
+    width: 30,
   },
   notificationBody: {
     flex: 1,
@@ -1450,14 +1455,16 @@ const styles = StyleSheet.create({
     gap: 8,
     justifyContent: 'space-between',
   },
-  notificationAppName: {
-    color: '#181818',
+  notificationAppLogo: {
     flex: 1,
-    fontFamily: Fonts.rounded,
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: 0,
-    lineHeight: 17,
+    height: 18,
+    maxWidth: 18,
+    width: 18,
+  },
+  notificationAppLogoCompact: {
+    height: 16,
+    maxWidth: 16,
+    width: 16,
   },
   notificationNow: {
     color: '#282828',

@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Fonts } from '@/constants/theme';
+import { StarLogo } from '@/components/star-logo';
 import { buttonHaptic } from '@/lib/haptics';
 
 const FEATURES = [
@@ -81,16 +82,22 @@ export function PaymentScreen() {
         </View>
 
         <View style={[styles.hero, isCompact && styles.heroCompact]}>
-          <Text style={[styles.title, isCompact && styles.titleCompact]}>
-            Be more{'\n'}productive with{'\n'}North Star.
-          </Text>
+          <View style={styles.titleStack}>
+            <Text style={[styles.title, isCompact && styles.titleCompact]}>
+              Be more{'\n'}productive with
+            </Text>
+            <StarLogo
+              style={[styles.heroLogo, isCompact && styles.heroLogoCompact]}
+              tintColor="#111111"
+            />
+          </View>
           <Text style={[styles.subtitle, isCompact && styles.subtitleCompact]}>
             with <Text style={styles.subtitleStrong}>36% off</Text> on premium features.
           </Text>
         </View>
 
         <View style={styles.watermark}>
-          <Text style={styles.watermarkText}>N.</Text>
+          <StarLogo style={styles.watermarkLogo} tintColor="#111111" />
         </View>
 
         <View style={[styles.featureCard, isCompact && styles.featureCardCompact]}>
@@ -235,6 +242,17 @@ const styles = StyleSheet.create({
     fontSize: 27,
     lineHeight: 34,
   },
+  titleStack: {
+    gap: 12,
+  },
+  heroLogo: {
+    height: 52,
+    width: 52,
+  },
+  heroLogoCompact: {
+    height: 46,
+    width: 46,
+  },
   subtitle: {
     color: '#7C7C82',
     fontFamily: Fonts.rounded,
@@ -252,20 +270,18 @@ const styles = StyleSheet.create({
     color: '#5F5F5F',
   },
   watermark: {
+    height: 320,
     opacity: 0.035,
     position: 'absolute',
     right: -42,
     top: 224,
     transform: [{ rotate: '-10deg' }],
+    width: 320,
     zIndex: 0,
   },
-  watermarkText: {
-    color: '#111111',
-    fontFamily: Fonts.rounded,
-    fontSize: 280,
-    fontWeight: '900',
-    letterSpacing: 0,
-    lineHeight: 296,
+  watermarkLogo: {
+    height: '100%',
+    width: '100%',
   },
   featureCard: {
     backgroundColor: '#FFFFFF',
